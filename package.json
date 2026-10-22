@@ -1,0 +1,27 @@
+{
+  "name": "marketplace",
+  "version": "1.0.0",
+  "description": "E-Commerce Platform with Clean Architecture",
+  "main": "src/application/index.js",
+  "scripts": {
+    "start": "node src/application/index.js",
+    "test": "node --test tests/**/*.test.js",
+    "test:domain": "node --test tests/domain/**/*.test.js",
+    "lint": "eslint . && prettier -c \"**/*.js\"",
+    "lint:fix": "eslint . --fix && prettier --write \"**/*.js\""
+  },
+  "keywords": ["marketplace", "e-commerce", "clean-architecture", "nodejs"],
+  "author": "Architecture Course",
+  "license": "MIT",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "prettier": "^3.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
