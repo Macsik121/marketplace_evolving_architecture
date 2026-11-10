@@ -36,6 +36,19 @@ class UpdateProduct {
       return { success: false, error: 'Invalid seller ID' };
     }
 
+    // Validate updates structure
+    if (!updates || typeof updates !== 'object') {
+      return { success: false, error: 'Updates object is required' };
+    }
+
+    // Check if at least one field is being updated
+    const hasUpdates = Object.keys(updates).some(key =>
+      ['title', 'description', 'price'].includes(key) && updates[key] !== undefined
+    );
+    if (!hasUpdates) {
+      return { success: false, error: 'No valid fields to update' };
+    }
+
     // Verify seller exists
     const seller = await this.#userRepository.findById(sellerId);
     if (!seller) {
@@ -63,9 +76,14 @@ class UpdateProduct {
       finalProduct = updatedProduct.updatePrice(updates.price);
     }
 
-    // Save
-    const saved = await this.#productRepository.save(finalProduct);
-    return { success: true, product: saved.toDTO() };
+    // Update (not save!)
+    const updated = await this.#productRepository.update(finalProduct);
+
+    if (!updated) {
+      return { success: false, error: 'Failed to update product' };
+    }
+
+    return { success: true, product: updated.toDTO() };
   }
 }
 

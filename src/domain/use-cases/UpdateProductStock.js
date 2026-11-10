@@ -29,10 +29,10 @@ class UpdateProductStock {
    */
   async execute({ productId, sellerId, quantity }) {
     // Input validation
-    if (!productId || typeof productId !== 'number') {
+    if (!productId || typeof productId !== 'number' || productId <= 0) {
       return { success: false, error: 'Invalid product ID' };
     }
-    if (!sellerId || typeof sellerId !== 'number') {
+    if (!sellerId || typeof sellerId !== 'number' || sellerId <= 0) {
       return { success: false, error: 'Invalid seller ID' };
     }
     if (!Number.isInteger(quantity) || quantity < 0) {

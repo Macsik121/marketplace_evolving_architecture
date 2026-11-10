@@ -103,18 +103,33 @@ class CreateOrder {
       createdAt: new Date(),
     });
 
-    // Save order
-    const savedOrder = await this.#orderRepository.save(order);
+    // Save order, update stock and clear cart in a single transaction
+    const client = await this.#orderRepository.getClient();
 
-    // Update stock for all products
-    for (const update of stockUpdates) {
-      await this.#productRepository.updateStock(update.productId, update.newStock);
+    try {
+      await client.query('BEGIN');
+
+      // Save order in transaction
+      const savedOrder = await this.#orderRepository.saveInTransaction(client, order);
+
+      // Update stock for all products in transaction
+      for (const update of stockUpdates) {
+        await this.#productRepository.updateStockInTransaction(client, update.productId, update.newStock);
+      }
+
+      // Clear cart in transaction
+      await this.#cartRepository.clearByUserInTransaction(client, buyerId);
+
+      await client.query('COMMIT');
+
+      return { success: true, order: savedOrder.toDTO() };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      console.error('Transaction failed:', error);
+      return { success: false, error: 'Failed to create order. Please try again.' };
+    } finally {
+      client.release();
     }
-
-    // Clear cart
-    await this.#cartRepository.clearByUser(buyerId);
-
-    return { success: true, order: savedOrder.toDTO() };
   }
 }
 

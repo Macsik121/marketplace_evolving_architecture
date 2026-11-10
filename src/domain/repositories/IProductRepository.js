@@ -87,6 +87,15 @@ class IProductRepository {
   async searchByTitle(query) {
     throw new Error('Method not implemented');
   }
+
+  /**
+   * Update existing product
+   * @param {Product} product
+   * @returns {Promise<Product|null>}
+   */
+  async update(product) {
+    throw new Error('Method not implemented');
+  }
 }
 
 module.exports = IProductRepository;

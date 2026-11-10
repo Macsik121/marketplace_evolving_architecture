@@ -79,6 +79,14 @@ class PostgresCartRepository extends ICartRepository {
     return result.rowCount > 0;
   }
 
+  async clearByUserInTransaction(client, userId) {
+    const result = await client.query(
+      'DELETE FROM cart_items WHERE user_id = $1',
+      [userId]
+    );
+    return result.rowCount > 0;
+  }
+
   async countByUser(userId) {
     const result = await this.#pool.query(
       'SELECT COUNT(*)::int as count FROM cart_items WHERE user_id = $1',

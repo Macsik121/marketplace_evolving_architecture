@@ -56,8 +56,45 @@ class PostgresProductRepository extends IProductRepository {
     return this.#mapToEntity(result.rows[0]);
   }
 
+  async update(product) {
+    const dto = product.toDTO();
+
+    if (!dto.productId) {
+      throw new Error('Cannot update product without productId');
+    }
+
+    const result = await this.#pool.query(
+      `UPDATE products
+       SET seller_id = $1,
+           category_id = $2,
+           title = $3,
+           description = $4,
+           price = $5,
+           stock_quantity = $6,
+           sku = $7
+       WHERE product_id = $8
+       RETURNING *`,
+      [dto.sellerId, dto.categoryId, dto.title, dto.description,
+       dto.price, dto.stock, dto.sku, dto.productId]
+    );
+
+    if (result.rows.length === 0) {
+      return null;  // Product not found
+    }
+
+    return this.#mapToEntity(result.rows[0]);
+  }
+
   async updateStock(productId, newStock) {
     const result = await this.#pool.query(
+      'UPDATE products SET stock_quantity = $1 WHERE product_id = $2',
+      [newStock, productId]
+    );
+    return result.rowCount > 0;
+  }
+
+  async updateStockInTransaction(client, productId, newStock) {
+    const result = await client.query(
       'UPDATE products SET stock_quantity = $1 WHERE product_id = $2',
       [newStock, productId]
     );

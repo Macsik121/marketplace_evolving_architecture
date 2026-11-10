@@ -34,6 +34,26 @@ class CreateProduct {
    * @returns {Promise<{success: boolean, product?: object, error?: string}>}
    */
   async execute({ sellerId, categoryId, title, description, price, stock = 0, sku }) {
+    // Input validation
+    if (!sellerId || typeof sellerId !== 'number' || sellerId <= 0) {
+      return { success: false, error: 'Invalid seller ID' };
+    }
+    if (!title || typeof title !== 'string' || title.trim().length === 0) {
+      return { success: false, error: 'Title is required and cannot be empty' };
+    }
+    if (!sku || typeof sku !== 'string' || sku.trim().length === 0) {
+      return { success: false, error: 'SKU is required and cannot be empty' };
+    }
+    if (typeof price !== 'number' || price <= 0) {
+      return { success: false, error: 'Price must be a positive number' };
+    }
+    if (typeof stock !== 'number' || stock < 0) {
+      return { success: false, error: 'Stock must be a non-negative number' };
+    }
+    if (description !== undefined && (typeof description !== 'string' || description.length > 5000)) {
+      return { success: false, error: 'Description must be a string under 5000 characters' };
+    }
+
     // Validate seller exists and is a seller
     const seller = await this.#userRepository.findById(sellerId);
     if (!seller) {

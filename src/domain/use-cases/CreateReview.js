@@ -42,11 +42,17 @@ class CreateReview {
    */
   async execute({ buyerId, productId, rating, comment }) {
     // Input validation
-    if (!buyerId || typeof buyerId !== 'number') {
+    if (!buyerId || typeof buyerId !== 'number' || buyerId <= 0) {
       return { success: false, error: 'Invalid buyer ID' };
     }
-    if (!productId || typeof productId !== 'number') {
+    if (!productId || typeof productId !== 'number' || productId <= 0) {
       return { success: false, error: 'Invalid product ID' };
+    }
+    if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
+      return { success: false, error: 'Rating must be a number between 1 and 5' };
+    }
+    if (comment !== undefined && (typeof comment !== 'string' || comment.length > 2000)) {
+      return { success: false, error: 'Comment must be a string under 2000 characters' };
     }
 
     // Verify buyer exists

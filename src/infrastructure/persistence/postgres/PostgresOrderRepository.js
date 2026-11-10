@@ -114,12 +114,27 @@ class PostgresOrderRepository extends IOrderRepository {
     return orders;
   }
 
-  async save(order) {
-    const dto = order.toDTO();
+  async getClient() {
+    return await this.#pool.connect();
+  }
 
-    const client = await this.#pool.connect();
+  async save(order) {
+    const client = await this.getClient();
     try {
-      await client.query('BEGIN');
+      return await this.saveInTransaction(client, order);
+    } finally {
+      client.release();
+    }
+  }
+
+  async saveInTransaction(client, order) {
+    const dto = order.toDTO();
+    const isExternalTransaction = client.release !== undefined;
+
+    try {
+      if (!isExternalTransaction) {
+        await client.query('BEGIN');
+      }
 
       const orderResult = await client.query(
         `INSERT INTO orders (buyer_id, total_amount, status, shipping_address)
@@ -138,14 +153,16 @@ class PostgresOrderRepository extends IOrderRepository {
         );
       }
 
-      await client.query('COMMIT');
+      if (!isExternalTransaction) {
+        await client.query('COMMIT');
+      }
 
       return await this.findById(savedOrderId);
     } catch (error) {
-      await client.query('ROLLBACK');
+      if (!isExternalTransaction) {
+        await client.query('ROLLBACK');
+      }
       throw error;
-    } finally {
-      client.release();
     }
   }
 
